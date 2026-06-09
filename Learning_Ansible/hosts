@@ -1,0 +1,8 @@
+[rocky9]
+172.16.1.10 ansible_user=vagrant ansible_ssh_private_key_file=.vagrant/machines/rocky9_server/virtualbox/private_key
+
+[locali]
+172.16.1.11
+
+[locali]
+localhost ansible_connection=local

@@ -1,0 +1,10 @@
+replicaCount: 1
+
+image:
+  repository: schioppolone/flask-app-example
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8000

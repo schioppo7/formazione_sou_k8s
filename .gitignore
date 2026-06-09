@@ -1,0 +1,6 @@
+.vagrant/
+**/helm.tar.gz
+**/linux-amd64/
+
+*.log
+.DS_Store
