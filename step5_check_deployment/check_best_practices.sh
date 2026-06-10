@@ -29,7 +29,7 @@ if ! grep  -q "limits" /tmp/deploy.yaml; then
         ERRORS=$((ERRORS + 1))
 fi
 
-# Corretto l'errore di battitura da 'greo' a 'grep'
+
 if ! grep -q "requests" /tmp/deploy.yaml; then
         echo " Attenzione: manca il blocco requests"
         ERRORS=$((ERRORS + 1))
