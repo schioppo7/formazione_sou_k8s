@@ -23,12 +23,6 @@ The script operates as follows:
 
 ---
 
-## Step Contents
-
-* `check_best_practices.sh`: The Bash script that performs the check and validates the YAML file.
-
----
-
 ## How to Run the Check
 
 1. Navigate to the step folder:
