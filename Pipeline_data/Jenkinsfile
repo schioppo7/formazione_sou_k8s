@@ -1,0 +1,31 @@
+pipeline {
+    agent {
+        node {
+            label 'agent-1'
+        }
+    }
+    stages {
+        stage('Controllo Giorno Settimana') { 
+            steps {
+                script {
+                    def tz = TimeZone.getTimeZone("Europe/Rome")
+                    def calendar = Calendar.getInstance(tz)
+                    def numeroGiorno = calendar.get(Calendar.DAY_OF_WEEK)
+                    def oggi = new Date()
+                    def giornoSettimana = oggi.format("EEEE (dd-MM-yyyy)", tz)
+
+                    echo "Giorno corrente: ${giornoSettimana}"
+
+                    if (numeroGiorno == Calendar.SATURDAY || numeroGiorno == Calendar.SUNDAY) { 
+                        echo "Oggi è fine settimana. Nun se lavora"
+                        
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    } else {
+                        echo "Oggi è un giorno lavorativo. Se lavora"
+                    }
+                } 
+            }
+       }
+    }
+}
