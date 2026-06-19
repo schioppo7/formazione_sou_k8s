@@ -27,25 +27,3 @@ This folder contains the configuration to automatically provision and configure 
 | **`jenkins-agent`** | Worker Node | `jenkins/inbound-agent` | `172.20.0.20` | Internal Only |
 
 ---
-
-## Quick Start Guide
-
-### Step 1: Spin up the Laboratory
-Navigate to the root directory containing your `Vagrantfile` and execute the following command to download the Rocky Linux base box, provision the virtual machine, and trigger Ansible to deploy Docker, networks, and the Jenkins master/agent containers:
-```bash
-vagrant up
-
-Step 2: Access the Jenkins UI
-Once the setup process finishes, open your host computer's web browser and navigate to the application console:
-
-URL: http://192.168.56.10:8080
-
-Step 3: Retrieve Initial Admin Password
-To unlock the Jenkins dashboard for the first time, SSH into your newly created virtual machine and read the system setup token directly from the running master container:
-
-Bash
-# SSH into the lab virtual machine
-vagrant ssh
-
-# Extract the password from the persisted Docker volume
-sudo docker exec jenkins-master cat /var/jenkins_home/secrets/initialAdminPassword
