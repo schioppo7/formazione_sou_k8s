@@ -81,5 +81,5 @@
             ipv4_address: "{{ jenkins_agent_ip }}"
         env:
           JENKINS_URL: "http://{{ jenkins_master_ip }}:8080"
-          JENKINS_SECRET: "{{ lookup('ansible.builtin.env', 'JENKINS_AGENT_SECRET') | default('valore_di_test_non_sicuro', true) }}"
+          JENKINS_SECRET: "{{ lookup('ansible.builtin.env', 'JENKINS_AGENT_SECRET') }}"
           JENKINS_AGENT_NAME: "agent-1"
