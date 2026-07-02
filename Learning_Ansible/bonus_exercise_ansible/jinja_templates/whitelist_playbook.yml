@@ -1,0 +1,40 @@
+---
+- name: "Insert in whitelist"
+  hosts: localhost
+  become: true
+
+  vars:
+    whitelist_users:
+      - "admin_paolo"
+      - "davide_dev"
+      - "guest_user"
+    temp_file: "/tmp/access_{{ lookup('ansible.builtin.env', 'USER') }}_{{ ansible_date_time.epoch }}.txt"
+    target_file: "/tmp/access.conf"
+
+  tasks:
+    - name: "file access.conf"
+      ansible.builtin.copy:
+        dest: "{{ target_file }}"
+        content: |
+          + : root : ALL
+          - : ALL : ALL
+      become: false
+
+    - name: "Generazione file access.conf"
+      ansible.builtin.template:
+        src: whitelist.j2
+        dest: "{{ temp_file }}"
+      delegate_to: localhost
+      become: false
+
+    - name: "Inserimento in whitelist anteponendosi"
+      ansible.builtin.blockinfile:
+        path: "{{ target_file }}"
+        block: "{{ lookup('ansible.builtin.file', temp_file) }}"
+        insertbefore: '- : ALL : ALL'
+
+    - name: "Delete temporary file"
+      ansible.builtin.file:
+        path: "{{ temp_file }}"
+        state: absent
+      become: false

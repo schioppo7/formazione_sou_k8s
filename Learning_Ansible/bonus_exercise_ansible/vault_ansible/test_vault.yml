@@ -1,0 +1,16 @@
+---
+- name: "Test Vault"
+  hosts: localhost
+  become: false
+
+  vars_files:
+    - segreti.yml
+
+  tasks: 
+    - name: "Mostra contenuto chiave api_key"
+      ansible.builtin.debug:
+        msg: "Il contenuto della chiave api_key è: {{ chiave_segreta_api }}"
+
+    - name: "Stampa la password del Database"
+      ansible.builtin.debug:
+        msg: "La password del Database è: {{ db_password_sicura }}"

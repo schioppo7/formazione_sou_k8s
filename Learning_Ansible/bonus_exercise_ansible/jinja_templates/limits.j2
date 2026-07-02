@@ -1,0 +1,9 @@
+# limits {{ target_user }}
+
+{% if environment_type == "production" %}
+{{ target_user }} soft nofile 10000
+{{ target_user }} hard nofile 10000
+{% else %}
+{{ target_user }} soft nofile 1000
+{{ target_user }} hard nofile 1000
+{% endif %}

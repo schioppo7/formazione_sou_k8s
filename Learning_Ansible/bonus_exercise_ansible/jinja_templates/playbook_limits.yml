@@ -1,0 +1,38 @@
+---
+
+- name: "Generazione Limits"
+  hosts: localhost
+  become: true
+
+  vars: 
+    target_user: "davideulizi06"
+    environment_type: "production"
+    #Definiamo il percorso usando utente e timestamp per evitare conflitti di configurazioni che vengono sovrascritte
+    temp_file: "/tmp/limits_{{ lookup('ansible.builtin.env', 'USER') }}_{{ ansible_date_time.epoch }}.txt"
+    target_file: "/tmp/limits.conf"
+  
+  tasks: 
+    - name: "Creazione file"
+      ansible.builtin.file:
+        path: "{{ target_file }}"
+        state: touch
+      become: false
+
+    - name: "Generazione file limits.conf"
+      ansible.builtin.template:
+        src: "limits.j2"
+        dest: "{{ temp_file }}"
+      delegate_to: localhost
+      become: false
+    
+    - name: "Append file target"
+      ansible.builtin.blockinfile:
+        path: "{{ target_file }}"
+        block: "{{ lookup('ansible.builtin.file', temp_file) }}"
+        insertafter: EOF
+    
+    - name: "Rimozione file temporaneo"
+      ansible.builtin.file:
+        path: "{{ temp_file }}"
+        state: absent
+      become: false
