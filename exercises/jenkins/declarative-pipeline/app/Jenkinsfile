@@ -1,0 +1,67 @@
+def imageTag = '' 
+
+pipeline {
+    agent {
+        label 'linux-agent'
+    }
+
+    environment {
+        DOCKER_HUB_USER = 'schioppolone'
+        IMAGE_NAME      = 'flask-app-example'
+        DOCKER_REGISTRY = "docker.io/${DOCKER_HUB_USER}/${IMAGE_NAME}"
+        DOCKER_CREDS_ID = 'dockerhub-credentials'
+    }
+
+    stages {
+        stage('Calculate Tag') {
+            steps {
+                script {
+                    if (env.TAG_NAME) {
+                        imageTag = env.TAG_NAME
+                        echo "Git tag detected: [${env.TAG_NAME}] - Used for the Docker image"
+                    } else if (env.BRANCH_NAME == 'master' || env.BRANCH_NAME == 'main') {
+                        imageTag = 'latest'
+                        echo "Main branch [${env.BRANCH_NAME}] detected - Docker image tagged as [latest]"
+                    } else if (env.BRANCH_NAME == 'develop') {
+                        def commitSha = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
+                        imageTag = "develop-${commitSha}"
+                        echo "Develop branch detected - Docker image tagged as '${imageTag}'."
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                script {
+                    echo "Building Docker image: ${DOCKER_REGISTRY}:${imageTag}"
+                    dir('exercises/jenkins/declarative-pipeline/app') {
+                        sh "docker build -t ${DOCKER_REGISTRY}:${imageTag} ."
+                    }
+                }
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                script {
+                    docker.withRegistry("https://index.docker.io/v1/", DOCKER_CREDS_ID) {
+                        echo "Pushing to Docker Hub..."
+                        dir('exercises/jenkins/declarative-pipeline/app') {
+                            sh "docker push ${DOCKER_REGISTRY}:${imageTag}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                script {
+                    echo 'Cleaning up local image from agent...'
+                    sh "docker rmi ${DOCKER_REGISTRY}:${imageTag} || true"
+                }
+            }
+        }
+    }
+}

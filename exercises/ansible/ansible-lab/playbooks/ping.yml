@@ -1,0 +1,6 @@
+---
+- name: My first test playbook
+  hosts: rocky9
+  tasks:
+    - name: Ping
+      ansible.builtin.ping:

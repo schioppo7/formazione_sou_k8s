@@ -1,0 +1,17 @@
+---
+- name: Test conditionals
+  hosts: rocky9
+  become: true
+
+  tasks:
+    - name: Check the operating system family
+      ansible.builtin.debug:
+        msg: "The operating system is based on {{ ansible_facts['os_family'] }}"
+    - name: 2. Run the task only if the operating system is based on RedHat
+      ansible.builtin.debug:
+        msg: "This is Rocky Linux 9, which is based on RedHat!"
+      when: ansible_facts['os_family'] == "RedHat"
+    - name: 3. Run the task only if the operating system is based on Debian
+      ansible.builtin.debug:
+        msg: "This system is based on Debian!"
+      when: ansible_facts['os_family'] == "Debian"

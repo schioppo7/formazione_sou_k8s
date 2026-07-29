@@ -1,0 +1,31 @@
+pipeline {
+    agent {
+        node {
+            label 'agent-1'
+        }
+    }
+    stages {
+        stage('Check Day of the Week') {
+            steps {
+                script {
+                    def tz = TimeZone.getTimeZone("Europe/Rome")
+                    def calendar = Calendar.getInstance(tz)
+                    def dayNumber = calendar.get(Calendar.DAY_OF_WEEK)
+                    def today = new Date()
+                    def dayOfWeek = today.format("EEEE (dd-MM-yyyy)", tz)
+
+                    echo "Current day: ${dayOfWeek}"
+
+                    if (dayNumber == Calendar.SATURDAY || dayNumber == Calendar.SUNDAY) {
+                        echo "Today is the weekend. No work today"
+
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    } else {
+                        echo "Today is a working day. Time to work"
+                    }
+                }
+            }
+       }
+    }
+}

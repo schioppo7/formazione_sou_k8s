@@ -4,3 +4,18 @@
 
 *.log
 .DS_Store
+__pycache__/
+*.pyc
+.env
+.vault_pass
+vault-password*
+**/credentials-secret.yaml
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+.kube/
+kubeconfig
+kubeconfig.*

@@ -1,0 +1,40 @@
+---
+- name: "Generate whitelist"
+  hosts: localhost
+  become: true
+
+  vars:
+    whitelist_users:
+      - "admin_user"
+      - "developer_user"
+      - "guest_user"
+    temp_file: "/tmp/access_{{ lookup('ansible.builtin.env', 'USER') }}_{{ ansible_date_time.epoch }}.txt"
+    target_file: "/tmp/access.conf"
+
+  tasks:
+    - name: "Create access.conf"
+      ansible.builtin.copy:
+        dest: "{{ target_file }}"
+        content: |
+          + : root : ALL
+          - : ALL : ALL
+      become: false
+
+    - name: "Generate access.conf"
+      ansible.builtin.template:
+        src: whitelist.j2
+        dest: "{{ temp_file }}"
+      delegate_to: localhost
+      become: false
+
+    - name: "Insert users before the deny rule"
+      ansible.builtin.blockinfile:
+        path: "{{ target_file }}"
+        block: "{{ lookup('ansible.builtin.file', temp_file) }}"
+        insertbefore: '- : ALL : ALL'
+
+    - name: "Delete temporary file"
+      ansible.builtin.file:
+        path: "{{ temp_file }}"
+        state: absent
+      become: false

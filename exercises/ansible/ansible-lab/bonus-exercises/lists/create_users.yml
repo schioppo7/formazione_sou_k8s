@@ -1,0 +1,28 @@
+---
+- name: "Create users from lists"
+  hosts: localhost
+  become: true
+
+  vars:
+    users:
+      - username: "developer_user"
+        user_group: "devops"
+        user_shell: "/bin/bash"
+      - username: "security_user"
+        user_group: "devops_security"
+        user_shell: "/bin/zsh"
+  
+  tasks:
+    - name: "Check groups"
+      ansible.builtin.group:
+        name: " {{ item.user_group }}"
+        state: present
+      loop: "{{ users }}"
+
+    - name: " Create users"
+      ansible.builtin.user:
+        name: "{{ item.username }}"
+        group: "{{ item.user_group }}"
+        shell: "{{ item.user_shell }}"
+        create_home: yes
+      loop: "{{ users }}"

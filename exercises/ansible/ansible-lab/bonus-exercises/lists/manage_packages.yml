@@ -1,0 +1,17 @@
+--- 
+- name: "Manage packages with a dictionary"
+  hosts: localhost
+  become: true
+
+  vars:
+    packages:
+      git: present
+      vim: absent
+      nginx: present
+  
+  tasks:
+    - name: "Install packages"
+      ansible.builtin.package:
+        name: "{{ item.key }}"
+        state: "{{ item.value }}"
+      loop: "{{ packages | dict2items }}"

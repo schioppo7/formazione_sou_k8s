@@ -1,0 +1,15 @@
+---
+- name: "Test Ansible Vault"
+  hosts: localhost
+  become: false
+
+  tasks:
+    - name: "Load encrypted variables"
+      no_log: true
+      ansible.builtin.include_vars:
+        file: secrets.yml
+        name: encrypted_secrets
+
+    - name: "Confirm the encrypted variables were loaded"
+      ansible.builtin.debug:
+        msg: "Encrypted variables loaded successfully."

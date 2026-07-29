@@ -1,0 +1,52 @@
+---
+- name: Configure variables
+  hosts: rocky9
+  become: true
+
+  vars:
+    web_package: httpd
+    page_title: "Welcome to the Ansible lab!"
+    page_author: "Example User"
+
+  tasks:
+    - name: 1. Check the connection with ping
+      ansible.builtin.ping:
+    - name: 2. Install the Apache web server using a variable
+      ansible.builtin.yum:
+        name: "{{ web_package }}"
+        state: present
+    - name: 3. Start the Apache service
+      ansible.builtin.systemd:
+        name: "{{ web_package }}"
+        state: started
+        enabled: true
+    - name: 4. Copy index.html to the server using variables
+      ansible.builtin.copy:
+        content: |
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>{{ page_title }}</title>
+          </head>
+          <body>
+              <h1>This page was configured with Ansible on Rocky Linux 9</h1>
+              <p>Created by {{ page_author }}</p>
+          </body>
+          </html>
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: '0644'
+      notify: Restart Apache
+    - name: 5. Open the HTTP port in the firewall
+      ansible.builtin.firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
+
+  handlers:
+   - name: Restart Apache
+     ansible.builtin.systemd:
+       name: "{{ web_package }}"
+       state: restarted

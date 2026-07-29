@@ -1,0 +1,86 @@
+---
+- name: "Set up Docker, a static network and Jenkins (Master & Agent)"
+  hosts: all
+  become: true
+
+  vars:
+    docker_network_name: "jenkins-net"
+    jenkins_subnet: "172.20.0.0/16"
+    jenkins_master_ip: "172.20.0.10"
+    jenkins_agent_ip: "172.20.0.20"
+    ansible_docker_extra_args: "--host=unix:///var/run/docker.sock"
+    docker_host: "unix://var/run/docker.sock"
+
+  tasks:
+    - name: 1. Install the packages required for external repositories
+      ansible.builtin.dnf:
+        name: [dnf-plugins-core, curl]
+        state: present 
+
+    - name: 2. Add the official Docker repository
+      ansible.builtin.yum_repository:
+        name: docker-ce-stable
+        description: Docker CE Stable - $basearch
+        baseurl: https://download.docker.com/linux/centos/9/$basearch/stable
+        gpgcheck: true
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        enabled: true
+
+    - name: 3. Install Docker Engine and system components
+      ansible.builtin.dnf:
+        name: [docker-ce, docker-ce-cli, containerd.io, docker-buildx-plugin]
+        state: present
+
+    - name: 4. Start and enable the Docker service
+      ansible.builtin.systemd:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: 5. Install the Python system library for Docker
+      ansible.builtin.dnf:
+        name: python3-docker
+        state: present
+
+    - name: 6. Configure the Docker network with static IP addresses
+      community.docker.docker_network:
+        name: "{{ docker_network_name }}"
+        ipam_config:
+          - subnet: "{{ jenkins_subnet }}"
+            gateway: "172.20.0.1"
+        state: present
+
+    - name: 7. Create the volume for persistent Jenkins data
+      community.docker.docker_volume:
+        name: "jenkins_home_volume"
+        state: present
+
+    - name: 8. Create the Jenkins Master container with a static IP address
+      community.docker.docker_container:
+        name: "jenkins-master"
+        image: "jenkins/jenkins:lts"
+        state: started
+        restart_policy: always
+        ports:
+          - "8080:8080"
+          - "50000:50000"
+        volumes:
+          - jenkins_home_volume:/var/jenkins_home
+        networks:
+          - name: "{{ docker_network_name }}"
+            ipv4_address: "{{ jenkins_master_ip }}"
+
+    - name: 9. Create the Jenkins Agent container
+      no_log: true
+      community.docker.docker_container:
+        name: "jenkins-agent"
+        image: "jenkins/inbound-agent"
+        state: started
+        restart_policy: always
+        networks:
+          - name: "{{ docker_network_name }}"
+            ipv4_address: "{{ jenkins_agent_ip }}"
+        env:
+          JENKINS_URL: "http://{{ jenkins_master_ip }}:8080"
+          JENKINS_SECRET: "{{ lookup('ansible.builtin.env', 'JENKINS_AGENT_SECRET') }}"
+          JENKINS_AGENT_NAME: "agent-1"

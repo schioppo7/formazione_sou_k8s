@@ -1,0 +1,30 @@
+---
+- name: Configure the Apache web server on Rocky Linux 9
+  hosts: rocky9
+  become: true
+  
+  tasks:
+    - name: 1. Check the connection with ping
+      ansible.builtin.ping:
+    - name: 2. Install the Apache web server
+      ansible.builtin.yum:
+        name: httpd
+        state: present
+    - name: 3. Start the Apache service
+      ansible.builtin.service:
+        name: httpd
+        state: started
+        enabled: true
+    - name: 4. Copy index.html to the server
+      ansible.builtin.copy:
+        src: ../index.html
+        dest: /var/www/html/index.html
+        owner: apache
+        group: apache
+        mode: '0644'
+    - name: 5. Open the HTTP port in the firewall
+      ansible.builtin.firewalld:
+        service: http
+        permanent: true
+        state: enabled
+        immediate: true
